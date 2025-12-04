@@ -1,3 +1,5 @@
+import personsService from "../services/persons";
+
 const ContactForm = ({
   contacts,
   newName,
@@ -8,19 +10,31 @@ const ContactForm = ({
 }) => {
   const addContact = (event) => {
     event.preventDefault();
-    if (contacts.some((contact) => contact.name == newName)) {
-      return window.alert(`${newName} is already added to phonebook`);
+
+    for (const contact of contacts) {
+      if (contact.name != newName) continue;
+      if (
+        !window.confirm(
+          `${newName} is already added to phonebook. Replace the old number with a new one?`
+        )
+      )
+        return;
+      return personsService
+        .update(contact.id, { ...contact, number: newNumber })
+        .then(() =>
+          personsService.getAll().then((persons) => setContacts(persons))
+        );
     }
+
     if (!(newName && newNumber)) {
       return window.alert("Both the name and number fields must be filled");
     }
-    setContacts(
-      contacts.concat({
+    personsService
+      .create({
         name: newName,
         number: newNumber,
-        id: contacts.length + 1,
       })
-    );
+      .then((person) => setContacts(contacts.concat(person)));
   };
   return (
     <form onSubmit={addContact}>

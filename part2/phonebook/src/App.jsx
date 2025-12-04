@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import personsService from "./services/persons";
 
 import ContactList from "./components/ContactList";
 import ContactForm from "./components/ContactForm";
@@ -12,9 +12,7 @@ const App = () => {
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
-      setContacts(response.data);
-    });
+    personsService.getAll().then((contacts) => setContacts(contacts));
   }, []);
 
   const visibleContacts = contacts.filter((contact) =>
@@ -35,7 +33,10 @@ const App = () => {
         setContacts={setContacts}
       />
       <h2>Numbers</h2>
-      <ContactList contacts={visibleContacts}></ContactList>
+      <ContactList
+        contacts={visibleContacts}
+        setContacts={setContacts}
+      ></ContactList>
     </div>
   );
 };
