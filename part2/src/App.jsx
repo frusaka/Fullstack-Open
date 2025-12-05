@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 
 import Note from "./components/Note";
+import Notification from "./components/Notification";
+import Footer from "./components/Footer";
+
 import noteService from "./services/notes";
 
 export default function App() {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("a new note...");
   const [showAll, setShowAll] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("some error happened...");
 
   useEffect(() => {
     noteService.getAll().then((response) => {
@@ -43,6 +47,7 @@ export default function App() {
   return (
     <div>
       <h1>Notes</h1>
+      {/* <Notification message={errorMessage} /> */}
       <div>
         <button onClick={() => setShowAll(!showAll)}>
           show {showAll ? "important" : "all"}
@@ -55,7 +60,7 @@ export default function App() {
             key={note.id}
             note={note}
             toggleImportance={toggleImportance(note.id)}
-          ></Note>
+          />
         ))}
       </ul>
 
@@ -63,6 +68,7 @@ export default function App() {
         <input value={newNote} onChange={handleNoteChange} />
         <button type="submit">save</button>
       </form>
+      <Footer />
     </div>
   );
 }

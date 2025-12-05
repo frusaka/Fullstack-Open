@@ -1,13 +1,9 @@
 import personsService from "../services/persons";
 
-const ContactForm = ({
-  contacts,
-  newName,
-  newNumber,
-  setContacts,
-  setNewName,
-  setNewNumber,
-}) => {
+const ContactForm = ({ fields, setters, notify }) => {
+  const { newName, newNumber, contacts } = fields;
+  const { setNewName, setNewNumber, setContacts } = setters;
+
   const addContact = (event) => {
     event.preventDefault();
 
@@ -23,6 +19,12 @@ const ContactForm = ({
         .update(contact.id, { ...contact, number: newNumber })
         .then(() =>
           personsService.getAll().then((persons) => setContacts(persons))
+        )
+        .then(() =>
+          notify({ message: `Updated ${newName}'s number`, success: true })
+        )
+        .catch(() =>
+          notify({ message: `${newName} was not found`, success: false })
         );
     }
 
@@ -34,7 +36,10 @@ const ContactForm = ({
         name: newName,
         number: newNumber,
       })
-      .then((person) => setContacts(contacts.concat(person)));
+      .then((person) => {
+        notify({ message: `Added ${newName}`, success: true });
+        setContacts(contacts.concat(person));
+      });
   };
   return (
     <form onSubmit={addContact}>
