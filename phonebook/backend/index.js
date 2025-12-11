@@ -37,10 +37,7 @@ const unknownEndpoint = (request, response) => {
 app.use(express.json());
 morgan.token("body", (request) => JSON.stringify(request.body));
 app.use(morgan(":method :url :status - :response-time ms :body"));
-
-app.get("/", (request, response) => {
-  response.send("<h1>Hello World!</h1>");
-});
+app.use(express.static("dist"));
 
 app.get("/api/persons", (request, response) => {
   response.json(persons);

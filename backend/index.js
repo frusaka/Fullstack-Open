@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors");
 
 let notes = [
   {
@@ -23,7 +22,6 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static("dist"));
-app.use(cors());
 
 function generateId() {
   return String(Math.max(...notes.map((note) => Number(note.id)), 0) + 1);
