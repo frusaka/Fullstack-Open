@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 
 let notes = [
   {
@@ -20,6 +21,7 @@ let notes = [
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 function generateId() {
