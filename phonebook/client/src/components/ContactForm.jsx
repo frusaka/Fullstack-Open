@@ -23,8 +23,8 @@ const ContactForm = ({ fields, setters, notify }) => {
         .then(() =>
           notify({ message: `Updated ${newName}'s number`, success: true })
         )
-        .catch(() =>
-          notify({ message: `${newName} was not found`, success: false })
+        .catch((error) =>
+          notify({ message: error.response.data.error, success: false })
         );
     }
 
@@ -39,7 +39,10 @@ const ContactForm = ({ fields, setters, notify }) => {
       .then((person) => {
         notify({ message: `Added ${newName}`, success: true });
         setContacts(contacts.concat(person));
-      });
+      })
+      .catch((error) =>
+        notify({ message: error.response.data.error, success: false })
+      );
   };
   return (
     <form onSubmit={addContact}>

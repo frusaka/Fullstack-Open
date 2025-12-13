@@ -41,11 +41,8 @@ app.delete("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const body = request.body;
-  if (!(body.name && body.number)) {
-    return response.status(400).json({ error: "Content missing" });
-  }
   Person.find({ name: body.name }).then((value) => {
     if (value.length) {
       return response.status(400).json({ error: "Person already exists" });
@@ -56,7 +53,8 @@ app.post("/api/persons", (request, response) => {
       number: body.number,
     })
       .save()
-      .then((person) => response.json(person));
+      .then((person) => response.json(person))
+      .catch((error) => next(error));
   });
 });
 
@@ -80,6 +78,9 @@ app.use(unknownEndpoint);
 
 const errorHandler = (error, request, response, next) => {
   console.log(error.message);
+  if (error.name == "ValidationError") {
+    return response.status(400).send({ error: error.message });
+  }
   next(error);
 };
 
