@@ -1,90 +1,90 @@
-require("dotenv").config();
-const express = require("express");
-const Note = require("./models/note");
+require('dotenv').config()
+const express = require('express')
+const Note = require('./models/note')
 
-const app = express();
+const app = express()
 
-app.use(express.static("dist"));
-app.use(express.json());
+app.use(express.static('dist'))
+app.use(express.json())
 
-app.get("/api/notes", (request, response) => {
+app.get('/api/notes', (request, response) => {
   Note.find({}).then((notes) => {
-    response.json(notes);
-  });
-});
+    response.json(notes)
+  })
+})
 
-app.get("/api/notes/:id", (request, response, next) => {
+app.get('/api/notes/:id', (request, response, next) => {
   Note.findById(request.params.id)
     .then((note) => {
       if (note) {
-        response.json(note);
+        response.json(note)
       } else {
-        response.status(404).end();
+        response.status(404).end()
       }
     })
-    .catch((error) => next(error));
-});
+    .catch((error) => next(error))
+})
 
-app.delete("/api/notes/:id", (request, response, next) => {
+app.delete('/api/notes/:id', (request, response, next) => {
   Note.findByIdAndDelete(request.params.id)
     .then(() => {
-      response.status(204).end();
+      response.status(204).end()
     })
-    .catch((error) => next(error));
-});
+    .catch((error) => next(error))
+})
 
-app.post("/api/notes", (request, response, next) => {
-  const body = request.body;
+app.post('/api/notes', (request, response, next) => {
+  const body = request.body
 
   const note = Note({
     content: body.content,
     important: body.important || false,
-  });
+  })
   note
     .save()
     .then((savedNote) => response.json(savedNote))
-    .catch((error) => next(error));
-});
+    .catch((error) => next(error))
+})
 
-app.put("/api/notes/:id", (request, response, next) => {
-  const { content, important } = request.body;
+app.put('/api/notes/:id', (request, response, next) => {
+  const { content, important } = request.body
 
   Note.findById(request.params.id)
     .then((note) => {
       if (!note) {
-        return response.status(404).end();
+        return response.status(404).end()
       }
 
-      note.content = content;
-      note.important = important;
+      note.content = content
+      note.important = important
 
       note.save().then((updatedNote) => {
-        response.json(updatedNote);
-      });
+        response.json(updatedNote)
+      })
     })
-    .catch((error) => next(error));
-});
+    .catch((error) => next(error))
+})
 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
-app.use(unknownEndpoint);
+app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-  console.log(error.message);
+  console.log(error.message)
 
-  if (error.name == "CastError") {
-    return response.status(400).send({ error: "malformatted id" });
-  } else if (error.name == "ValidationError") {
-    return response.status(400).send({ error: error.message });
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).send({ error: error.message })
   }
 
-  next(error);
-};
+  next(error)
+}
 
-app.use(errorHandler);
+app.use(errorHandler)
 
-const PORT = process.env.PORT;
-app.listen(PORT);
-console.log(`Server running on port ${PORT}`);
+const PORT = process.env.PORT
+app.listen(PORT)
+console.log(`Server running on port ${PORT}`)
