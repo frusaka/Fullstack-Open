@@ -1,12 +1,24 @@
-const { test, after, beforeEach } = require('node:test')
+const { test, after, beforeEach, before } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const helper = require('./test_helper')
 const Note = require('../models/note')
+const User = require('../models/user')
 
 const api = supertest(app)
+
+before(async () => {
+  await mongoose.connection.close() // WORKAROUND: using the same db path is problematic due to the nature of async/await 'interleaving'
+  await mongoose.connect(process.env.TEST_NOTES_API_MONGODB_URI, { family: 4 })
+  await User.deleteMany({})
+
+  const users = await helper.testUsers()
+  helper.initialNotes.forEach((note, idx) => {
+    note.user = users[idx % 2]
+  })
+})
 
 beforeEach(async () => {
   await Note.deleteMany({})
@@ -36,6 +48,7 @@ test('a valid note can be added', async () => {
   const newNote = {
     content: 'async/await simplifies making async calls',
     important: true,
+    userId: helper.initialNotes[1].user,
   }
 
   await api
@@ -44,10 +57,10 @@ test('a valid note can be added', async () => {
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
-  const response = await api.get('/api/notes')
-  const contents = response.body.map((e) => e.content)
+  const notes = await helper.notesInDb()
+  const contents = notes.map((e) => e.content)
 
-  assert.strictEqual(response.body.length, helper.initialNotes.length + 1)
+  assert.strictEqual(notes.length, helper.initialNotes.length + 1)
   assert(contents.includes(newNote.content))
 })
 
@@ -58,18 +71,19 @@ test('note without content is not added', async () => {
 
   await api.post('/api/notes').send(newNote).expect(400)
 
-  const response = await api.get('/api/notes')
-
-  assert.strictEqual(response.body.length, helper.initialNotes.length)
+  assert((await helper.notesInDb()).length === helper.initialNotes.length)
 })
 
 test('a specific note can be viewed', async () => {
-  const note = (await api.get('/api/notes')).body[0]
+  const note = (await helper.notesInDb())[0]
   const resultNote = await api
     .get(`/api/notes/${note.id}`)
     .expect(200)
     .expect('Content-Type', /application\/json/)
-  assert.deepStrictEqual(resultNote.body, note)
+  assert.deepStrictEqual(resultNote.body, {
+    ...note,
+    user: note.user._id.toString(),
+  })
 })
 
 test('a note can be deleted', async () => {
