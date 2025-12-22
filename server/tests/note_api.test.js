@@ -10,8 +10,6 @@ const User = require('../models/user')
 const api = supertest(app)
 
 before(async () => {
-  await mongoose.connection.close() // WORKAROUND: using the same db path is problematic due to the nature of async/await 'interleaving'
-  await mongoose.connect(process.env.TEST_NOTES_API_MONGODB_URI, { family: 4 })
   await User.deleteMany({})
 
   const users = await helper.testUsers()

@@ -1,4 +1,4 @@
-const { describe, test, beforeEach, before, after } = require('node:test')
+const { describe, test, beforeEach, after } = require('node:test')
 const assert = require('node:assert')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
@@ -58,6 +58,48 @@ describe('when there is initially one user in db', () => {
     assert(result.body.error.includes('expected `username` to be unique'))
 
     assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+  describe('creation fails with proper statuscode and message if username/password validation fails', () => {
+    test('fails if username too short', async () => {
+      const usersAtStart = await helper.usersInDb()
+
+      const newUser = {
+        username: 'rt',
+        name: 'Superuser',
+        password: 'salainen',
+      }
+
+      const result = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+        .expect('Content-Type', /application\/json/)
+
+      const usersAtEnd = await helper.usersInDb()
+      assert(result.body.error.includes('username too short'))
+
+      assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+    })
+    test('fails if password too short', async () => {
+      const usersAtStart = await helper.usersInDb()
+
+      const newUser = {
+        username: 'roott',
+        name: 'Superuser',
+        password: 'sl',
+      }
+
+      const result = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+        .expect('Content-Type', /application\/json/)
+
+      const usersAtEnd = await helper.usersInDb()
+      assert(result.body.error.includes('password too short'))
+
+      assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+    })
   })
 })
 

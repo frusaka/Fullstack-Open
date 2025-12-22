@@ -1,36 +1,60 @@
-const BlogListRouter = require('express').Router()
+const jwt = require('jsonwebtoken')
+const blogListRouter = require('express').Router()
 const Blog = require('../models/blog')
+const { userExtractor } = require('../utils/middleware')
 
-BlogListRouter.get('/', async (request, response) => {
-  response.json(await Blog.find({}))
+blogListRouter.get('/', async (request, response) => {
+  response.json(await Blog.find({}).populate('user', { username: 1, name: 1 }))
 })
 
-BlogListRouter.post('/', async (request, response) => {
+blogListRouter.post('/', userExtractor, async (request, response) => {
+  const { title, url, author, likes } = request.body
+  const user = request.user
   const savedBlog = await Blog({
-    ...request.body,
-    likes: request.body.likes || 0,
+    title,
+    url,
+    author,
+    likes: likes || 0,
+    user: user._id,
   }).save()
+  user.blogs = user.blogs.concat(savedBlog._id)
+  await user.save()
   response.status(201).json(savedBlog)
 })
 
-BlogListRouter.get('/:id', async (request, response) => {
+blogListRouter.get('/:id', async (request, response) => {
   const blog = await Blog.findById(request.params.id)
   if (blog) response.json(blog)
   else response.status(404).end()
 })
 
-BlogListRouter.delete('/:id', async (request, response) => {
-  if (await Blog.findByIdAndDelete(request.params.id))
-    response.status(204).end()
-  else response.status(404).end()
+blogListRouter.delete('/:id', userExtractor, async (request, response) => {
+  const blog = await Blog.findById(request.params.id)
+  if (!blog) {
+    return response.status(404).end()
+  }
+  if (blog.user.toString() !== request.user._id.toString()) {
+    return response
+      .status(401)
+      .json({ error: "can't delete since you're not the owner" })
+  }
+  await Blog.findByIdAndDelete(blog._id)
+  response.status(204).end()
 })
 
-BlogListRouter.put('/:id', async (request, response) => {
+blogListRouter.put('/:id', userExtractor, async (request, response) => {
   const blog = await Blog.findById(request.params.id)
-  if (!blog) return response.status(404).end()
+  if (!blog) {
+    return response.status(404).end()
+  }
+  if (blog.user.toString() !== request.user._id.toString()) {
+    return response
+      .status(401)
+      .json({ error: "can't update since you're not the owner" })
+  }
   blog.likes = request.body.likes
   await blog.save()
   response.status(201).json(blog)
 })
 
-module.exports = BlogListRouter
+module.exports = blogListRouter
