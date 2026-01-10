@@ -22,7 +22,7 @@ beforeEach(async () => {
 
 test('gets correct list of blogs', async () => {
   const response = await api
-    .get('/api/bloglist')
+    .get('/api/blogs')
     .expect(200)
     .expect('Content-Type', /application\/json/)
   assert.strictEqual(response.body.length, helper.initialBlogs.length)
@@ -36,14 +36,13 @@ test('unique identifier is named "id"', async () => {
 test('creating a new blog works', async () => {
   token = await helper.login(api, 0)
   await api
-    .post('/api/bloglist')
+    .post('/api/blogs')
     .set('Authorization', 'Bearer ' + token)
     .send(helper.initialBlogs[2])
     .expect(201)
     .expect('Content-Type', /application\/json/)
   assert(
-    (await api.get('/api/bloglist')).body.length ==
-      helper.initialBlogs.length + 1
+    (await api.get('/api/blogs')).body.length == helper.initialBlogs.length + 1
   )
 })
 
@@ -58,7 +57,7 @@ test('if "likes" property missing, default is 0', async () => {
   assert(
     (
       await api
-        .post('/api/bloglist')
+        .post('/api/blogs')
         .set('Authorization', 'Bearer ' + token)
         .send(blog)
         .expect(201)
@@ -69,7 +68,7 @@ test('if "likes" property missing, default is 0', async () => {
 test('if url,title, or author is missing, returns 400', async () => {
   token = await helper.login(api, 0)
   await api
-    .post('/api/bloglist')
+    .post('/api/blogs')
     .set('Authorization', 'Bearer ' + token)
     .send({
       author: 'Mr Nice',
@@ -77,7 +76,7 @@ test('if url,title, or author is missing, returns 400', async () => {
     })
     .expect(400)
   await api
-    .post('/api/bloglist')
+    .post('/api/blogs')
     .set('Authorization', 'Bearer ' + token)
     .send({
       title: 'Missing likes',
@@ -85,7 +84,7 @@ test('if url,title, or author is missing, returns 400', async () => {
     })
     .expect(400)
   await api
-    .post('/api/bloglist')
+    .post('/api/blogs')
     .set('Authorization', 'Bearer ' + token)
     .send({
       title: 'Missing likes',
@@ -93,7 +92,7 @@ test('if url,title, or author is missing, returns 400', async () => {
     })
     .expect(400)
   await api
-    .post('/api/bloglist')
+    .post('/api/blogs')
     .set('Authorization', 'Bearer ' + token)
     .send({})
     .expect(400)
@@ -104,7 +103,7 @@ describe('deleting a blog', async () => {
     token = await helper.login(api, 0)
     const blog = (await helper.blogsInDb())[0]
     await api
-      .delete(`/api/bloglist/${blog.id}`)
+      .delete(`/api/blogs/${blog.id}`)
       .set('Authorization', 'Bearer ' + token)
       .expect(204)
     const remainingBlogs = await helper.blogsInDb()
@@ -115,11 +114,11 @@ describe('deleting a blog', async () => {
     token = await helper.login(api, 1)
     const id = (await helper.blogsInDb())[1].id
     await api
-      .delete(`/api/bloglist/${id}`)
+      .delete(`/api/blogs/${id}`)
       .set('Authorization', 'Bearer ' + token)
       .expect(204)
     await api
-      .delete(`/api/bloglist/${id}`)
+      .delete(`/api/blogs/${id}`)
       .set('Authorization', 'Bearer ' + token)
       .expect(404)
     const remainingBlogs = await helper.blogsInDb()
@@ -132,7 +131,7 @@ describe('updating a blog', () => {
     token = await helper.login(api, 1)
     const id = (await helper.blogsInDb())[3].id
     await api
-      .put(`/api/bloglist/${id}`)
+      .put(`/api/blogs/${id}`)
       .set('Authorization', 'Bearer ' + token)
       .send({
         likes: 1234,
@@ -145,11 +144,9 @@ describe('updating a blog', () => {
   test('fails with status 404 for non-existing id', async () => {
     token = await helper.login(api, 0)
     const id = (await helper.blogsInDb())[0].id
+    await api.delete(`/api/blogs/${id}`).set('Authorization', 'Bearer ' + token)
     await api
-      .delete(`/api/bloglist/${id}`)
-      .set('Authorization', 'Bearer ' + token)
-    await api
-      .put(`/api/bloglist/${id}`)
+      .put(`/api/blogs/${id}`)
       .set('Authorization', 'Bearer ' + token)
       .expect(404)
   })
@@ -159,7 +156,7 @@ describe('accessing a single blog', () => {
   test('succeeds with status 200 for valid id', async () => {
     const blog = (await helper.blogsInDb())[1]
     const resultBlog = await api
-      .get(`/api/bloglist/${blog.id}`)
+      .get(`/api/blogs/${blog.id}`)
       .expect(200)
       .expect('Content-Type', /application\/json/)
     assert.deepStrictEqual(resultBlog.body, blog)
@@ -167,10 +164,8 @@ describe('accessing a single blog', () => {
   test('fails with status 404 for invalid id', async () => {
     token = await helper.login(api, 1)
     const id = (await helper.blogsInDb())[5].id
-    await api
-      .delete(`/api/bloglist/${id}`)
-      .set('Authorization', 'Bearer ' + token)
-    await api.get(`/api/bloglist/${id}`).expect(404)
+    await api.delete(`/api/blogs/${id}`).set('Authorization', 'Bearer ' + token)
+    await api.get(`/api/blogs/${id}`).expect(404)
   })
 })
 
