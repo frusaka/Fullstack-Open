@@ -1,8 +1,8 @@
 export default function Footer() {
   const style = {
-    color: "green",
-    fontStyle: "italic",
-  };
+    color: 'green',
+    fontStyle: 'italic',
+  }
 
   return (
     <div style={style}>
@@ -11,5 +11,5 @@ export default function Footer() {
         Note app, Department of Computer Science, University of Helsinki 2025
       </p>
     </div>
-  );
+  )
 }
