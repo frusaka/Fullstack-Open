@@ -12,7 +12,7 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [feedback, setFeedback] = useState({ message: null, success: true })
+  const [notification, setNotification] = useState({ message: null, success: true })
   const [author, setAuthor] = useState('')
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
@@ -42,8 +42,8 @@ const App = () => {
   }, [])
 
   const notify = (obj) => {
-    setFeedback(obj)
-    setTimeout(() => setFeedback({ message: null, success: true }), 3000)
+    setNotification(obj)
+    setTimeout(() => setNotification({ message: null, success: true }), 3000)
   }
 
   const handleLogin = async (event) => {
@@ -93,7 +93,7 @@ const App = () => {
   return (
     <div>
       <h2>Blogs</h2>
-      <Notification message={feedback.message} success={feedback.success} />
+      <Notification message={notification.message} success={notification.success} />
       {!user && (
         <Togglable buttonLabel='login'>
           <LoginForm

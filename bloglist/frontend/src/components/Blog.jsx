@@ -34,7 +34,7 @@ const Blog = ({ blog, handleUpdate, handleDelete }) => {
             URL: <a href={blog.url}>{blog.url}</a>
           </div>
           <div>
-            Likes: {blog.likes}
+            Likes: <span>{blog.likes}</span>
             <Togglable buttonLabel='change' ref={likesFormRef}>
               <form action='put' onSubmit={changeLikes}>
                 <input
@@ -46,7 +46,9 @@ const Blog = ({ blog, handleUpdate, handleDelete }) => {
               </form>
             </Togglable>
           </div>
-          <p>Author: {blog.author}</p>
+          <p>
+            Author: <span>{blog.author}</span>
+          </p>
           <button onClick={() => handleDelete(blog)}>remove</button>
         </div>
       )}
